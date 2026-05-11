@@ -1,0 +1,9 @@
+[package]
+name = "envsynx"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+json = "0.12.4"
+reqwest = "0.13.3"
+trpl = "0.3.0"

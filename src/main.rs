@@ -1,4 +1,5 @@
-use std::env;
+use std::env::{self, current_dir};
+use regex::Regex;
 use reqwest::{Client, Error};
 use json::{JsonValue, parse};
 mod helper;
@@ -30,11 +31,20 @@ fn command(cmd: Vec<String>) {
                 eprintln!("init failed: {err}");
             }
         },
+        "dir" => if let Err(err) = dir() {
+                eprintln!("init failed: {err}");
+            },
         "" => helper::help(""),
         _ => println!("Unknown command: {} -> Use [envsynx help] to see all avalible commands", cmd[1]),
     }
 }
 
+
+/*
+This command lists the available projects by sending a GET request to the backend API.
+It demonstrates how to make an authenticated request using the reqwest library,
+and it processes the JSON response to display the project names in a user-friendly format.
+*/
 fn list() -> Result<(), Error> {
     trpl::run(async {
         let client = Client::new();
@@ -60,6 +70,11 @@ fn list() -> Result<(), Error> {
     })
 }
 
+/*
+This command initializes a new project by sending a POST request to the backend API.
+It demonstrates how to interact with a backend service using the reqwest library,
+and it serves as a starting point for implementing more complex project initialization logic in the future.
+*/
 fn init()  -> Result<(), Error>  {
     println!("Initializing a new project...");
 
@@ -76,4 +91,47 @@ fn init()  -> Result<(), Error>  {
 
         Ok(())
     })
+}
+
+
+/*
+Show all env files in the current directory.
+This command will list all files in the current directory that have a .env extension, 
+providing an easy way to identify environment files that may be present.
+It also prepares the application for future features that may involve managing or 
+synchronizing these env files with a backend service.
+*/
+fn dir() -> Result<(), std::io::Error> {
+
+    let pattern = Regex::new(r"^\.env").unwrap();
+
+    println!("Showing all env files in the current directory...");
+
+    let path = current_dir()?;
+    println!("Current directory: {}", path.display());
+
+    let paths = std::fs::read_dir(path)?;
+
+    let _env_files: Vec<String> = Vec::new();
+
+    
+    // println!("The name is: {}", &caps["name"]);
+
+    for p in paths {
+        let display_path = p?.path().display().to_string();
+        // println!("Name: {}", display_path);
+        // if display_path.to_string().ends_with(".env") {
+        //     println!("Found env file: {}", display_path); 
+        // }
+
+        let Some(caps) = pattern.captures(display_path.as_str()) else {
+            println!("no match!");
+            println!("{}", display_path);
+            continue;
+        };
+
+        println!("The name is: {}", &caps["name"]);
+    }
+
+    Ok(())
 }
